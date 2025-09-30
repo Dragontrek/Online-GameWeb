@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body { background: #0d1117; color: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+    h1 { margin-top: 2rem; }
+    #board { display: grid; grid-template-columns: repeat(3, 80px); grid-gap: 10px; margin: 2rem 0; }
+    .cell { width: 80px; height: 80px; background: #161b22; border: 2px solid #21262d; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; }
+    .cell:hover { background: #21262d; }
+    #status { font-size: 1.2rem; margin-bottom: 1rem; }
+    button { padding: 0.5rem 1.5rem; font-size: 1rem; border-radius: 8px; border: none; background: #00c6fb; color: #fff; cursor: pointer; margin: 0 0.3rem 0.5rem 0.3rem; }
+    button:hover { background: #005bea; }
+  </style>
+</head>
+<body>
+  <h1>Tic-Tac-Toe</h1>
+  <div id="mode-select">
+    <label>Mode:</label>
+    <button id="pvpBtn" onclick="selectMode('pvp')">Player vs Player</button>
+    <button id="pvcBtn" onclick="selectMode('pvc')">Player vs Computer</button>
+    <div id="difficulty-buttons" style="display:none;">
+      <label>Difficulty:</label>
+      <button onclick="selectDifficulty('easy')" id="easyBtn">Easy</button>
+      <button onclick="selectDifficulty('medium')" id="mediumBtn">Medium</button>
+      <button onclick="selectDifficulty('hard')" id="hardBtn">Hard</button>
+    </div>
+    <br/>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+  <div id="status" style="display:none;">Player X's turn</div>
+  <div id="board" style="display:none;"></div>
+  <button id="restartBtn" onclick="resetGame()" style="display:none;">Restart</button>
+  <button onclick="window.location.href='web1.html'" style="margin-left:1rem;background:#21262d;color:#fff;">Back to Home</button>
+  <script>
+    let board = Array(9).fill("");
+    let currentPlayer = "X";
+    let gameActive = true;
+    let mode = "pvp";
+    let difficulty = "easy";
+    const statusDiv = document.getElementById('status');
+    const boardDiv = document.getElementById('board');
+    const modeSelectDiv = document.getElementById('mode-select');
+    const restartBtn = document.getElementById('restartBtn');
+    const difficultyButtonsDiv = document.getElementById('difficulty-buttons');
+    let selectedDifficultyBtn = document.getElementById('easyBtn');
+    let selectedModeBtn = document.getElementById('pvpBtn');
+
+    function selectMode(selectedMode) {
+      mode = selectedMode;
+      if (mode === 'pvp') {
+        difficultyButtonsDiv.style.display = 'none';
+      } else {
+        difficultyButtonsDiv.style.display = '';
+      }
+      // Update button styles for mode
+      selectedModeBtn.style.backgroundColor = '#00c6fb';
+      selectedModeBtn.style.color = '#fff';
+      if (selectedMode === 'pvp') {
+        selectedModeBtn = document.getElementById('pvpBtn');
+      } else {
+        selectedModeBtn = document.getElementById('pvcBtn');
+      }
+      selectedModeBtn.style.backgroundColor = '#005bea';
+      selectedModeBtn.style.color = '#fff';
+    }
+
+    function selectDifficulty(selectedDiff) {
+      difficulty = selectedDiff;
+      // Update button styles for difficulty
+      selectedDifficultyBtn.style.backgroundColor = '#00c6fb';
+      selectedDifficultyBtn.style.color = '#fff';
+      if (selectedDiff === 'easy') {
+        selectedDifficultyBtn = document.getElementById('easyBtn');
+      } else if (selectedDiff === 'medium') {
+        selectedDifficultyBtn = document.getElementById('mediumBtn');
+      } else {
+        selectedDifficultyBtn = document.getElementById('hardBtn');
+      }
+      selectedDifficultyBtn.style.backgroundColor = '#005bea';
+      selectedDifficultyBtn.style.color = '#fff';
+    }
+
+    function startGame() {
+      modeSelectDiv.style.display = 'none';
+      statusDiv.style.display = '';
+      boardDiv.style.display = '';
+      restartBtn.style.display = '';
+      resetGame();
+    }
+    function renderBoard() {
+      boardDiv.innerHTML = "";
+      board.forEach((cell, idx) => {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = 'cell';
+        cellDiv.textContent = cell;
+        cellDiv.onclick = () => handleMove(idx);
+        boardDiv.appendChild(cellDiv);
+      });
+    }
+    function handleMove(idx) {
+      if (!gameActive || board[idx]) return;
+      board[idx] = currentPlayer;
+      if (checkWin(currentPlayer)) {
+        statusDiv.textContent = `Player ${currentPlayer} wins!`;
+        gameActive = false;
+      } else if (board.every(cell => cell)) {
+        statusDiv.textContent = "It's a draw!";
+        gameActive = false;
+      } else {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+        renderBoard();
+        if (mode === 'pvc' && currentPlayer === 'O' && gameActive) {
+          setTimeout(computerMove, 500);
+        }
+      }
+      renderBoard();
+    }
+    function checkWin(player) {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      return wins.some(line => line.every(i => board[i] === player));
+    }
+    function resetGame() {
+      board = Array(9).fill("");
+      currentPlayer = "X";
+      gameActive = true;
+      statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+      renderBoard();
+    }
+    function computerMove() {
+      let move;
+      if (difficulty === 'easy') {
+        // Random move
+        let available = board.map((v,i)=>v===''?i:null).filter(v=>v!==null);
+        move = available[Math.floor(Math.random()*available.length)];
+      } else if (difficulty === 'medium') {
+        // Block player win, else random
+        move = findWinningMove('O') || findWinningMove('X') || randomMove();
+      } else {
+        // Minimax
+        move = minimaxMove();
+      }
+      handleMove(move);
+    }
+    function randomMove() {
+      let available = board.map((v,i)=>v===''?i:null).filter(v=>v!==null);
+      return available[Math.floor(Math.random()*available.length)];
+    }
+    function findWinningMove(player) {
+      for (let i=0;i<9;i++) {
+        if (board[i]==='') {
+          board[i]=player;
+          if (checkWin(player)) { board[i]=''; return i; }
+          board[i]='';
+        }
+      }
+      return null;
+    }
+    function minimaxMove() {
+      let bestScore = -Infinity, move = null;
+      for (let i=0;i<9;i++) {
+        if (board[i]==='') {
+          board[i]='O';
+          let score = minimax(board, 0, false);
+          board[i]='';
+          if (score > bestScore) { bestScore = score; move = i; }
+        }
+      }
+      return move;
+    }
+    function minimax(b, depth, isMax) {
+      if (checkWin('O')) return 10-depth;
+      if (checkWin('X')) return depth-10;
+      if (b.every(cell=>cell)) return 0;
+      if (isMax) {
+        let best = -Infinity;
+        for (let i=0;i<9;i++) {
+          if (b[i]==='') {
+            b[i]='O';
+            best = Math.max(best, minimax(b, depth+1, false));
+            b[i]='';
+          }
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i=0;i<9;i++) {
+          if (b[i]==='') {
+            b[i]='X';
+            best = Math.min(best, minimax(b, depth+1, true));
+            b[i]='';
+          }
+        }
+        return best;
+      }
+    }
+
+    // Initialize button styles on page load
+    window.onload = () => {
+      selectMode('pvp');
+      selectDifficulty('easy');
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Zone Hub</title>
+  <link rel="stylesheet" href="web1.css">
+  <style>
+    body {
+      background: #0d1117;
+      color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 3rem;
+      background: linear-gradient(90deg, #00c6fb, #005bea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #b3b3b3;
+      margin-bottom: 2rem;
+    }
+    .games {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: nowrap;
+      justify-content: center;
+      overflow-x: auto;
+    }
+    .card {
+      background: #161b22;
+      border: 2px solid #21262d;
+      border-radius: 1rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      width: 260px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: transform 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      border-color: #00c6fb;
+    }
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+    .tic {
+      background: linear-gradient(135deg, #00c6fb, #005bea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .connect {
+      background: linear-gradient(135deg, #ff512f, #dd2476);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .battleship {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .card-desc {
+      color: #b3b3b3;
+      font-size: 1rem;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Game Zone</h1>
+    <div class="subtitle">Choose your battle, pick your challenge</div>
+    <div class="games">
+      <a href="tic-tac-toe.html">
+        <div class="card">
+          <div class="icon tic">X/O</div>
+          <div class="card-title">Tic-Tac-Toe</div>
+          <div class="card-desc">Classic 3x3 grid strategy game</div>
+        </div>
+      </a>
+      <a href="connect-four.html">
+        <div class="card">
+          <div class="icon connect">4</div>
+          <div class="card-title">Connect Four</div>
+          <div class="card-desc">Drop tokens to connect four in a row</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</body>
+</html>

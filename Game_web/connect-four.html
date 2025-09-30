@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Four</title>
+  <style>
+    body { background: #0d1117; color: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+    h1 { margin-top: 2rem; }
+    #board { display: grid; grid-template-columns: repeat(7, 60px); grid-template-rows: repeat(6, 60px); grid-gap: 6px; margin: 2rem 0; }
+    .cell { width: 60px; height: 60px; background: #161b22; border: 2px solid #21262d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; }
+    .cell.red { background: #ff512f; }
+    .cell.yellow { background: #ffe600; color: #222; }
+    #status { font-size: 1.2rem; margin-bottom: 1rem; }
+    button { padding: 0.5rem 1.5rem; font-size: 1rem; border-radius: 8px; border: none; background: #ff512f; color: #fff; cursor: pointer; margin: 0 0.3rem 0.5rem 0.3rem; }
+    button:hover { background: #dd2476; }
+  </style>
+</head>
+<body>
+  <h1>Connect Four</h1>
+  <div id="mode-select">
+    <label>Mode:</label>
+    <button id="pvpBtn" onclick="selectMode('pvp')">Player vs Player</button>
+    <button id="pvcBtn" onclick="selectMode('pvc')">Player vs Computer</button>
+    <div id="difficulty-buttons" style="display:none;">
+      <label>Difficulty:</label>
+      <button onclick="selectDifficulty('easy')" id="easyBtn">Easy</button>
+      <button onclick="selectDifficulty('medium')" id="mediumBtn">Medium</button>
+      <button onclick="selectDifficulty('hard')" id="hardBtn">Hard</button>
+    </div>
+    <br/>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+  <div id="status" style="display:none;">Red's turn</div>
+  <div id="board" style="display:none;"></div>
+  <button id="restartBtn" onclick="restartGame()" style="display:none;">Restart</button>
+  <button id="backBtn" style="margin-left:1rem;background:#21262d;color:#fff;">Back to Home</button>
+  <script>
+    let board = Array(6).fill().map(() => Array(7).fill(""));
+    let currentPlayer = "red";
+    let gameActive = true;
+    let mode = "pvp";
+    let difficulty = "easy";
+    const statusDiv = document.getElementById('status');
+    const boardDiv = document.getElementById('board');
+    const modeSelectDiv = document.getElementById('mode-select');
+    const restartBtn = document.getElementById('restartBtn');
+    const difficultyButtonsDiv = document.getElementById('difficulty-buttons');
+    let selectedDifficultyBtn = document.getElementById('easyBtn');
+    let selectedModeBtn = document.getElementById('pvpBtn');
+
+    function selectMode(selectedMode) {
+      mode = selectedMode;
+      if (mode === 'pvp') {
+        difficultyButtonsDiv.style.display = 'none';
+      } else {
+        difficultyButtonsDiv.style.display = '';
+      }
+      // Update button styles for mode
+      selectedModeBtn.style.backgroundColor = '#ff512f';
+      selectedModeBtn.style.color = '#fff';
+      if (selectedMode === 'pvp') {
+        selectedModeBtn = document.getElementById('pvpBtn');
+      } else {
+        selectedModeBtn = document.getElementById('pvcBtn');
+      }
+      selectedModeBtn.style.backgroundColor = '#dd2476';
+      selectedModeBtn.style.color = '#fff';
+    }
+
+    function selectDifficulty(selectedDiff) {
+      difficulty = selectedDiff;
+      // Update button styles for difficulty
+      selectedDifficultyBtn.style.backgroundColor = '#ff512f';
+      selectedDifficultyBtn.style.color = '#fff';
+      if (selectedDiff === 'easy') {
+        selectedDifficultyBtn = document.getElementById('easyBtn');
+      } else if (selectedDiff === 'medium') {
+        selectedDifficultyBtn = document.getElementById('mediumBtn');
+      } else {
+        selectedDifficultyBtn = document.getElementById('hardBtn');
+      }
+      selectedDifficultyBtn.style.backgroundColor = '#dd2476';
+      selectedDifficultyBtn.style.color = '#fff';
+    }
+
+    function startGame() {
+      modeSelectDiv.style.display = 'none';
+      statusDiv.style.display = '';
+      boardDiv.style.display = '';
+      restartBtn.style.display = '';
+      resetGame();
+    }
+    function renderBoard() {
+      boardDiv.innerHTML = "";
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 7; col++) {
+          const cellDiv = document.createElement('div');
+          cellDiv.className = 'cell';
+          if (board[row][col]) cellDiv.classList.add(board[row][col]);
+          cellDiv.onclick = () => handleMove(col);
+          boardDiv.appendChild(cellDiv);
+        }
+      }
+    }
+    function handleMove(col) {
+      if (!gameActive) return;
+      if (mode === 'pvc' && currentPlayer === 'yellow') return; // Prevent user from playing for computer
+      for (let row = 5; row >= 0; row--) {
+        if (!board[row][col]) {
+          board[row][col] = currentPlayer;
+          if (checkWin(row, col, currentPlayer)) {
+            statusDiv.textContent = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} wins!`;
+            gameActive = false;
+          } else if (board.flat().every(cell => cell)) {
+            statusDiv.textContent = "It's a draw!";
+            gameActive = false;
+          } else {
+            currentPlayer = currentPlayer === "red" ? "yellow" : "red";
+            statusDiv.textContent = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}'s turn`;
+            renderBoard();
+            if (mode === 'pvc' && currentPlayer === 'yellow' && gameActive) {
+              setTimeout(computerMove, 500);
+            }
+          }
+          renderBoard();
+          break;
+        }
+      }
+    }
+    function checkWin(row, col, player) {
+      const directions = [
+        [[0,1],[0,-1]], [[1,0],[-1,0]], [[1,1],[-1,-1]], [[1,-1],[1,1]]
+      ];
+      for (const dir of directions) {
+        let count = 1;
+        for (const [dr, dc] of dir) {
+          let r = row + dr, c = col + dc;
+          while (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === player) {
+            count++;
+            r += dr; c += dc;
+          }
+        }
+        if (count >= 4) return true;
+      }
+      return false;
+    }
+    function checkWinner() {
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 7; c++) {
+          if (board[r][c]) {
+            if (checkWin(r, c, board[r][c])) return board[r][c];
+          }
+        }
+      }
+      return null;
+    }
+    function isBoardFull() {
+      return board.flat().every(cell => cell !== '');
+    }
+    function resetGame() {
+      board = Array(6).fill().map(() => Array(7).fill(""));
+      currentPlayer = "red";
+      gameActive = true;
+      statusDiv.textContent = `Red's turn`;
+      renderBoard();
+    }
+    function restartGame() {
+      resetGame();
+    }
+    document.getElementById('backBtn').onclick = function() {
+      window.location.href = 'web1.html';
+    };
+    function computerMove() {
+      if (!gameActive) return;
+      let move;
+      if (difficulty === 'easy') {
+        move = randomMove();
+      } else if (difficulty === 'medium') {
+        move = findWinningMove('yellow') || findWinningMove('red') || randomMove();
+      } else {
+        move = minimaxMove();
+      }
+      // Computer makes its move
+      for (let row = 5; row >= 0; row--) {
+        if (!board[row][move]) {
+          board[row][move] = 'yellow';
+          if (checkWin(row, move, 'yellow')) {
+            statusDiv.textContent = `Yellow wins!`;
+            gameActive = false;
+          } else if (board.flat().every(cell => cell)) {
+            statusDiv.textContent = "It's a draw!";
+            gameActive = false;
+          } else {
+            currentPlayer = 'red';
+            statusDiv.textContent = `Red's turn`;
+          }
+          renderBoard();
+          break;
+        }
+      }
+    }
+    function randomMove() {
+      let available = [];
+      for (let c=0;c<7;c++) if (!board[0][c]) available.push(c);
+      return available[Math.floor(Math.random()*available.length)];
+    }
+    function findWinningMove(player) {
+      for (let c=0;c<7;c++) {
+        let r = -1;
+        for (let row=5;row>=0;row--) if (!board[row][c]) { r=row; break; }
+        if (r===-1) continue;
+        board[r][c]=player;
+        if (checkWin(r,c,player)) { board[r][c]=''; return c; }
+        board[r][c]='';
+      }
+      return null;
+    }
+    function minimaxMove() {
+      let bestScore = -Infinity;
+      let bestCol = null;
+      for (let c = 0; c < 7; c++) {
+        if (board[0][c] !== '') continue;
+        let r = -1;
+        for (let row = 5; row >= 0; row--) {
+          if (!board[row][c]) {
+            r = row;
+            break;
+          }
+        }
+        if (r === -1) continue;
+        board[r][c] = 'yellow';
+        let score = minimax(0, false);
+        board[r][c] = '';
+        if (score > bestScore) {
+          bestScore = score;
+          bestCol = c;
+        }
+      }
+      return bestCol;
+    }
+    function minimax(depth, isMaximizing) {
+      let winner = checkWinner();
+      if (winner === 'yellow') return 10 - depth;
+      if (winner === 'red') return depth - 10;
+      if (isBoardFull()) return 0;
+      if (depth >= 5) return 0;
+      if (isMaximizing) {
+        let maxEval = -Infinity;
+        for (let c = 0; c < 7; c++) {
+          if (board[0][c] !== '') continue;
+          let r = -1;
+          for (let row = 5; row >= 0; row--) {
+            if (!board[row][c]) {
+              r = row;
+              break;
+            }
+          }
+          if (r === -1) continue;
+          board[r][c] = 'yellow';
+          let eval = minimax(depth + 1, false);
+          board[r][c] = '';
+          maxEval = Math.max(maxEval, eval);
+        }
+        return maxEval;
+      } else {
+        let minEval = Infinity;
+        for (let c = 0; c < 7; c++) {
+          if (board[0][c] !== '') continue;
+          let r = -1;
+          for (let row = 5; row >= 0; row--) {
+            if (!board[row][c]) {
+              r = row;
+              break;
+            }
+          }
+          if (r === -1) continue;
+          board[r][c] = 'red';
+          let eval = minimax(depth + 1, true);
+          board[r][c] = '';
+          minEval = Math.min(minEval, eval);
+        }
+        return minEval;
+      }
+    }
+
+    // Initialize button styles on page load
+    window.onload = () => {
+      selectMode('pvp');
+      selectDifficulty('easy');
+    };
+  </script>
+</body>
+</html>

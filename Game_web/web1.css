@@ -1,0 +1,13 @@
+/* src/index.css */
+
+/* Import the Tailwind CSS layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+body {
+    /* Set a default dark background color for the entire page */
+    background-color: #0d1117; 
+    font-family: 'Arial', sans-serif;
+}
